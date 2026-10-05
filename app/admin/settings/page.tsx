@@ -1,6 +1,7 @@
-import { apiUrl } from '@/lib/api-client';
 'use client';
 
+
+import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Settings, Save, CheckCircle2, Loader2, Sparkles, Globe, User, MessageSquare, ShieldCheck } from 'lucide-react';

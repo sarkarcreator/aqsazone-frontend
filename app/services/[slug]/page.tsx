@@ -46,9 +46,41 @@ export default async function ServiceDetailPage({
     (cs) => cs.relatedServiceId === service.id
   );
 
-  const features = Array.isArray(service.features) ? service.features : [];
-  const processSteps = Array.isArray(service.process) ? service.process : [];
-  const faqs = Array.isArray(service.faqs) ? service.faqs : [];
+const features: string[] = Array.isArray(service.features)
+  ? (service.features as unknown[]).filter(
+      (feat): feat is string => typeof feat === 'string'
+    )
+  : [];
+
+const processSteps: Array<{
+  title: string;
+  description: string;
+}> = Array.isArray(service.process)
+  ? (service.process as unknown[]).filter(
+      (step): step is { title: string; description: string } =>
+        typeof step === 'object' &&
+        step !== null &&
+        'title' in step &&
+        'description' in step &&
+        typeof step.title === 'string' &&
+        typeof step.description === 'string'
+    )
+  : [];
+
+const faqs: Array<{
+  question: string;
+  answer: string;
+}> = Array.isArray(service.faqs)
+  ? (service.faqs as unknown[]).filter(
+      (faq): faq is { question: string; answer: string } =>
+        typeof faq === 'object' &&
+        faq !== null &&
+        'question' in faq &&
+        'answer' in faq &&
+        typeof faq.question === 'string' &&
+        typeof faq.answer === 'string'
+    )
+  : [];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">

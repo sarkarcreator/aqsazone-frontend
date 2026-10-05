@@ -1,6 +1,7 @@
-import { apiUrl } from '@/lib/api-client';
 'use client';
 
+
+import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { TrendingUp, Plus, Trash2, Edit, Eye, EyeOff, CheckCircle2, X } from 'lucide-react';
@@ -49,7 +50,8 @@ export default function AdminCaseStudiesPage() {
   const fetchCaseStudies = async () => {
     setLoading(true);
     try {
-      const res = await fetch(apiUrl('/api/case-studies?admin=true'));
+      const token = localStorage.getItem('admin_token') || '';
+      const res = await fetch(apiUrl('/api/case-studies?admin=true'), { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setCaseStudies(data.caseStudies || []);

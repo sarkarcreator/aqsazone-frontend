@@ -1,6 +1,7 @@
-import { apiUrl } from '@/lib/api-client';
 'use client';
 
+
+import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';

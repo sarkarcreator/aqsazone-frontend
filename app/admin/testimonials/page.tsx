@@ -1,6 +1,7 @@
-import { apiUrl } from '@/lib/api-client';
 'use client';
 
+
+import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { MessageSquare, Plus, Trash2, Edit, Star, CheckCircle2, X } from 'lucide-react';
@@ -40,7 +41,8 @@ export default function AdminTestimonialsPage() {
   const fetchTestimonials = async () => {
     setLoading(true);
     try {
-      const res = await fetch(apiUrl('/api/testimonials?admin=true'));
+      const token = localStorage.getItem('admin_token') || '';
+      const res = await fetch(apiUrl('/api/testimonials?admin=true'), { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setTestimonials(data.testimonials || []);

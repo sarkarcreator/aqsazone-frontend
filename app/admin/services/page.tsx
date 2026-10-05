@@ -1,6 +1,7 @@
-import { apiUrl } from '@/lib/api-client';
 'use client';
 
+
+import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
@@ -65,7 +66,8 @@ export default function AdminServicesPage() {
   const fetchServices = async () => {
     setLoading(true);
     try {
-      const res = await fetch(apiUrl('/api/services?admin=true'));
+      const token = localStorage.getItem('admin_token') || '';
+      const res = await fetch(apiUrl('/api/services?admin=true'), { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setServices(data.services || []);

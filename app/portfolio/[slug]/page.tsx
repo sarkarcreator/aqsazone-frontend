@@ -38,10 +38,22 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
-  const tools = Array.isArray(project.tools) ? project.tools : [];
-  const mediaItems = project.media || [];
+ const tools: string[] = Array.isArray(project.tools)
+  ? (project.tools as unknown[]).filter(
+      (tool): tool is string => typeof tool === 'string'
+    )
+  : [];
 
-  return (
+const mediaItems: Array<{
+  id: string | number;
+  url: string;
+  type?: string;
+  title?: string | null;
+  altText?: string | null;
+  caption?: string | null;
+}> = Array.isArray(project.media) ? project.media : [];
+
+return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       <Navbar />
 

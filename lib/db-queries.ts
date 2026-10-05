@@ -1,5 +1,37 @@
 import { apiUrl } from '@/lib/api-client';
 
+interface ActivityLog {
+  id: number;
+  action: string;
+  details: string | null;
+  userEmail: string | null;
+  createdAt: string;
+}
+
+interface AdminAnalyticsResponse {
+  analytics: {
+    totalLeads: number;
+    newLeads: number;
+    activeLeads: number;
+    wonLeads: number;
+    lostLeads: number;
+    totalServices: number;
+    publishedServices: number;
+    totalProjects: number;
+    publishedProjects: number;
+    draftProjects: number;
+    totalClients: number;
+    totalCaseStudies: number;
+    totalTestimonials: number;
+    statusCounts: Record<string, number>;
+    serviceCounts: Record<string, number>;
+    sourceCounts: Record<string, number>;
+    topViewedProjects: Array<{ id: number; title: string; viewsCount: number }>;
+    topViewedServices: Array<{ id: number; name: string; viewsCount: number }>;
+  };
+  recentActivity: ActivityLog[];
+}
+
 async function getJson<T>(path: string, init?: RequestInit, fallback?: T): Promise<T> {
   try {
     const res = await fetch(apiUrl(path), { ...init, cache: 'no-store' });
@@ -93,7 +125,7 @@ export async function getLeads(options?: Record<string, string>) {
 }
 
 export async function updateLead(id: number, data: Record<string, unknown>, token?: string) {
-  return getJson(`/api/leads/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(data) });
+  return getJson(`/api/leads/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(data) });
 }
 
 export async function convertLeadToClient(leadId: number, token?: string) {
@@ -105,14 +137,14 @@ export async function getClients(token?: string) {
   return data.clients || [];
 }
 
-export async function getAdminAnalytics(token?: string): Promise<any> {
-  const data = await getJson('/api/analytics', { headers: token ? { Authorization: `Bearer ${token}` } : {} }, {});
+export async function getAdminAnalytics(token?: string): Promise<AdminAnalyticsResponse> {
+  const data = await getJson<AdminAnalyticsResponse>('/api/analytics', { headers: token ? { Authorization: `Bearer ${token}` } : {} }, { analytics: {} as AdminAnalyticsResponse['analytics'], recentActivity: [] });
   return data;
 }
 
-export async function getActivityLogs(token?: string): Promise<any[]> {
-  const data = await getJson('/api/analytics', { headers: token ? { Authorization: `Bearer ${token}` } : {} }, {});
-  return data.activityLogs || [];
+export async function getActivityLogs(token?: string): Promise<ActivityLog[]> {
+  const data = await getJson<AdminAnalyticsResponse>('/api/analytics', { headers: token ? { Authorization: `Bearer ${token}` } : {} }, { analytics: {} as AdminAnalyticsResponse['analytics'], recentActivity: [] });
+  return data.recentActivity || [];
 }
 
 export async function getMediaItems(token?: string) {

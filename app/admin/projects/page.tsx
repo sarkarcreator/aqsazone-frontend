@@ -1,6 +1,7 @@
-import { apiUrl } from '@/lib/api-client';
 'use client';
 
+
+import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
@@ -88,9 +89,10 @@ export default function AdminProjectsPage() {
   const fetchProjectsAndOptions = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('admin_token') || '';
       const [resProj, resSvc] = await Promise.all([
-        fetch(apiUrl('/api/projects?admin=true')),
-        fetch(apiUrl('/api/services?admin=true')),
+        fetch(apiUrl('/api/projects?admin=true'), { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(apiUrl('/api/services?admin=true'), { headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
       if (resProj.ok) {
