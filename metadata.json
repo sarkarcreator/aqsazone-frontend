@@ -1,0 +1,6 @@
+{
+  "name": "Aqsa Zone - Digital Services & Portfolio CMS/CRM",
+  "description": "Professional personal-brand portfolio, service catalogue, and integrated Admin CMS/CRM system for Aqsa Zone.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
