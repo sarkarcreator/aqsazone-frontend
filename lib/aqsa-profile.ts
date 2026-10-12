@@ -43,12 +43,19 @@ export const defaultAqsaJuttProfile: AqsaJuttProfile = {
 export function parseAqsaJuttProfile(raw?: string | null): AqsaJuttProfile {
  try {
   if (!raw) return defaultAqsaJuttProfile;
-  const parsed = JSON.parse(raw) as Partial<AqsaJuttProfile> & { skills?: unknown[] };
-  const incomingSkills = Array.isArray(parsed.skills) ? parsed.skills : defaultAqsaJuttProfile.skills;
-  const skills: AqsaSkill[] = incomingSkills.map((skill, index) => {
-    if (typeof skill === "string") return { id: `skill-legacy-${index}-${skill.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, name: skill, published: true };
+  const parsed = JSON.parse(raw) as {
+   name?: string; title?: string; intro?: string; location?: string; published?: boolean;
+   skills?: unknown[];
+   languages?: AqsaJuttProfile["languages"];
+   experience?: AqsaJuttProfile["experience"];
+   education?: AqsaJuttProfile["education"];
+  };
+  const incomingSkills: unknown[] = Array.isArray(parsed.skills) ? parsed.skills : defaultAqsaJuttProfile.skills;
+  const skills: AqsaSkill[] = incomingSkills.flatMap((skill, index): AqsaSkill[] => {
+    if (typeof skill === "string") return [{ id: `skill-legacy-${index}-${skill.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, name: skill, published: true }];
+    if (!skill || typeof skill !== "object") return [];
     const item = skill as Partial<AqsaSkill>;
-    return { id: item.id || `skill-imported-${index}`, name: item.name || "", published: item.published !== false };
+    return [{ id: typeof item.id === "string" && item.id ? item.id : `skill-imported-${index}`, name: typeof item.name === "string" ? item.name : "", published: item.published !== false }];
   });
   return { ...defaultAqsaJuttProfile, ...parsed,
    skills,
