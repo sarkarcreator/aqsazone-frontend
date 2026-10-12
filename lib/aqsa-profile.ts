@@ -1,7 +1,9 @@
 export interface ProfileEntry { id: string; published: boolean; [key: string]: string | boolean; }
+export interface AqsaSkill { id: string; name: string; published: boolean; }
 export interface AqsaJuttProfile {
   name: string; title: string; intro: string; location: string; published: boolean;
-  skills: string[]; languages: Array<{id:string; name:string; level:string; published:boolean}>;
+  skills: AqsaSkill[];
+  languages: Array<{id:string; name:string; level:string; published:boolean}>;
   experience: Array<{id:string; company:string; role:string; duration:string; description:string; period:string; published:boolean}>;
   education: Array<{id:string; degree:string; institution:string; year:string; published:boolean}>;
 }
@@ -9,7 +11,18 @@ export const defaultAqsaJuttProfile: AqsaJuttProfile = {
  name: "Aqsa Jutt", title: "Content Writer",
  intro: "I am a creative Content Writer, Script Writer, and Video Editor, skilled at turning ideas into engaging words and compelling visuals. I write clear, impactful content and scripts that grab attention, educate viewers, and boost engagement. With strong storytelling and editing skills, I create content that is simple, powerful, and result-focused.",
  location: "Jaranwala Road, Faisalabad", published: true,
- skills: ["Communication","Time management","Organization","Technical skills","Research","Content writing","Video editing","Script writing","Team Work","Copywriting"],
+ skills: [
+  {id:"skill-communication",name:"Communication",published:true},
+  {id:"skill-time-management",name:"Time management",published:true},
+  {id:"skill-organization",name:"Organization",published:true},
+  {id:"skill-technical",name:"Technical skills",published:true},
+  {id:"skill-research",name:"Research",published:true},
+  {id:"skill-content-writing",name:"Content writing",published:true},
+  {id:"skill-video-editing",name:"Video editing",published:true},
+  {id:"skill-script-writing",name:"Script writing",published:true},
+  {id:"skill-teamwork",name:"Team Work",published:true},
+  {id:"skill-copywriting",name:"Copywriting",published:true}
+ ],
  languages: [
   {id:"lang-english",name:"English",level:"Good",published:true},
   {id:"lang-urdu",name:"Urdu",level:"Good",published:true},
@@ -30,9 +43,15 @@ export const defaultAqsaJuttProfile: AqsaJuttProfile = {
 export function parseAqsaJuttProfile(raw?: string | null): AqsaJuttProfile {
  try {
   if (!raw) return defaultAqsaJuttProfile;
-  const parsed = JSON.parse(raw) as Partial<AqsaJuttProfile>;
+  const parsed = JSON.parse(raw) as Partial<AqsaJuttProfile> & { skills?: unknown[] };
+  const incomingSkills = Array.isArray(parsed.skills) ? parsed.skills : defaultAqsaJuttProfile.skills;
+  const skills: AqsaSkill[] = incomingSkills.map((skill, index) => {
+    if (typeof skill === "string") return { id: `skill-legacy-${index}-${skill.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, name: skill, published: true };
+    const item = skill as Partial<AqsaSkill>;
+    return { id: item.id || `skill-imported-${index}`, name: item.name || "", published: item.published !== false };
+  });
   return { ...defaultAqsaJuttProfile, ...parsed,
-   skills: Array.isArray(parsed.skills) ? parsed.skills : defaultAqsaJuttProfile.skills,
+   skills,
    languages: Array.isArray(parsed.languages) ? parsed.languages : defaultAqsaJuttProfile.languages,
    experience: Array.isArray(parsed.experience) ? parsed.experience : defaultAqsaJuttProfile.experience,
    education: Array.isArray(parsed.education) ? parsed.education : defaultAqsaJuttProfile.education
