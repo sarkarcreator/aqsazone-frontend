@@ -6,7 +6,7 @@ import { getTestimonials, getSiteSettings } from '@/lib/db-queries';
 import { Sparkles, MessageSquare, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function TestimonialsPage() {
   const [testimonialsList, settings] = await Promise.all([
