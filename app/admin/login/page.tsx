@@ -1,175 +1,114 @@
 'use client';
 
-
 import { apiUrl } from '@/lib/api-client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, googleAuthProvider } from '@/lib/firebase';
-import { signInWithPopup } from 'firebase/auth';
-import { ShieldCheck, KeyRound, Loader2, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, KeyRound, Loader2, ArrowRight, Sparkles, Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react';
 import Link from 'next/link';
 
+type Mode = 'checking' | 'setup' | 'login';
+
 export default function AdminLoginPage() {
-  const [passcode, setPasscode] = useState('');
+  const [mode, setMode] = useState<Mode>('checking');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const router = useRouter();
 
-  const handlePasscodeLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    let active = true;
+    fetch(apiUrl('/api/admin/setup'), { credentials: 'include', cache: 'no-store' })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Unable to check admin setup.');
+        if (active) setMode(data.setupRequired ? 'setup' : 'login');
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setMode('login');
+          setError(err instanceof Error ? err.message : 'Backend connection failed. Please try again.');
+        }
+      });
+    return () => { active = false; };
+  }, []);
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
-
+    setNotice('');
     try {
-      const res = await fetch(apiUrl('/api/admin/login'), {
+      const endpoint = mode === 'setup' ? '/api/admin/setup' : '/api/admin/login';
+      const payload = mode === 'setup' ? { name, email, password } : { email, password };
+      const response = await fetch(apiUrl(endpoint), {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode }),
+        body: JSON.stringify(payload),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Invalid passcode');
-      }
-
-      localStorage.setItem('admin_token', data.token);
-      router.push('/admin');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Authentication failed.');
+      setNotice(mode === 'setup' ? 'Secure admin account created. Opening your control center…' : 'Access verified. Welcome back…');
+      router.replace('/admin');
+      router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const cred = await signInWithPopup(auth, googleAuthProvider);
-      const idToken = await cred.user.getIdToken();
-
-      const res = await fetch(apiUrl('/api/admin/login'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Authentication rejected by server');
-      }
-
-      localStorage.setItem('admin_token', data.token);
-      router.push('/admin');
-    } catch (err: unknown) {
-      console.error('Google login error:', err);
-      setError(err instanceof Error ? err.message : 'Google authentication failed');
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        {/* Brand header */}
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 mx-auto flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-purple-600/30 mb-3">
-            AZ
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Aqsa Zone Admin</h1>
-          <p className="text-xs text-slate-400 mt-1">CMS & CRM Management Portal</p>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
-            {error}
-          </div>
-        )}
-
-        {/* Google Sign-in with Firebase */}
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium text-xs flex items-center justify-center gap-3 transition-colors mb-6 disabled:opacity-50"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-            />
-          </svg>
-          <span>Sign In with Google</span>
-        </button>
-
-        <div className="relative flex items-center justify-center my-6">
-          <div className="border-t border-slate-800 w-full" />
-          <span className="bg-slate-900 px-3 text-[11px] text-slate-500 uppercase tracking-wider">
-            Or Admin Passcode
-          </span>
-          <div className="border-t border-slate-800 w-full" />
-        </div>
-
-        {/* Passcode Form */}
-        <form onSubmit={handlePasscodeLogin} className="space-y-4">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#080910] px-4 py-10 text-white">
+      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-violet-600/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -right-20 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
+      <div className="relative grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#10111b]/95 shadow-2xl shadow-black/50 lg:grid-cols-[0.95fr_1.05fr]">
+        <section className="relative hidden flex-col justify-between overflow-hidden border-r border-white/10 bg-gradient-to-br from-violet-950/80 via-[#151324] to-[#11121a] p-10 lg:flex">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
-              <span>Admin PIN / Passcode</span>
-              <span className="text-[10px] text-purple-400 font-mono">Default: aqsa2026</span>
-            </label>
-            <div className="relative">
-              <input
-                type="password"
-                required
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                placeholder="Enter passcode"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              />
-              <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/30 bg-amber-300/10 text-sm font-black tracking-widest text-amber-200">AZ</div>
+            <p className="mt-8 text-xs font-semibold uppercase tracking-[0.35em] text-amber-200/80">Private workspace</p>
+            <h1 className="mt-4 max-w-sm text-4xl font-semibold leading-tight tracking-tight">Your work. Your vision. Your control.</h1>
+            <p className="mt-5 max-w-sm text-sm leading-7 text-slate-300">A dedicated command center for managing the Aqsa Zone portfolio, projects, services and client relationships.</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="flex items-center gap-3 text-amber-200"><LockKeyhole className="h-5 w-5" /><span className="text-sm font-medium">Protected admin access</span></div>
+            <p className="mt-2 text-xs leading-6 text-slate-400">No public registration. Your first account is created once, then setup locks automatically.</p>
+          </div>
+          <div className="absolute -right-14 top-1/3 h-56 w-56 rounded-full border border-amber-200/10" />
+          <div className="absolute -right-5 top-[38%] h-40 w-40 rounded-full border border-violet-300/10" />
+        </section>
+
+        <section className="p-6 sm:p-10 lg:p-12">
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/30 bg-amber-300/10 text-sm font-black text-amber-200">AZ</div>
+            <div><p className="font-semibold">Aqsa Zone</p><p className="text-xs text-slate-400">Private admin portal</p></div>
+          </div>
+          <div className="mb-8">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1.5 text-xs text-violet-200"><Sparkles className="h-3.5 w-3.5" /> {mode === 'setup' ? 'First-time secure setup' : 'Restricted access'}</div>
+            <h2 className="text-3xl font-semibold tracking-tight">{mode === 'checking' ? 'Checking access…' : mode === 'setup' ? 'Create your admin' : 'Welcome back'}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">{mode === 'setup' ? 'Create the only admin account. Public signup will be locked after this step.' : 'Sign in with your administrator credentials to continue.'}</p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <ShieldCheck className="w-4 h-4" />
-                <span>Enter Admin Console</span>
-              </>
-            )}
-          </button>
-        </form>
+          {error && <div role="alert" className="mb-5 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
+          {notice && <div role="status" className="mb-5 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">{notice}</div>}
 
-        <div className="mt-8 pt-4 border-t border-slate-800/80 text-center">
-          <Link href="/" className="text-xs text-slate-400 hover:text-white transition-colors">
-            ← Return to Public Website
-          </Link>
-        </div>
+          {mode === 'checking' ? (
+            <div className="flex items-center gap-3 py-10 text-sm text-slate-400"><Loader2 className="h-5 w-5 animate-spin" /> Checking secure setup status…</div>
+          ) : (
+            <form onSubmit={submit} className="space-y-5">
+              {mode === 'setup' && <div><label htmlFor="admin-name" className="mb-2 block text-xs font-medium text-slate-300">Admin name</label><div className="relative"><UserRound className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" /><input id="admin-name" autoComplete="name" required minLength={2} maxLength={120} value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/10" /></div></div>}
+              <div><label htmlFor="admin-email" className="mb-2 block text-xs font-medium text-slate-300">Admin email</label><div className="relative"><Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" /><input id="admin-email" type="email" autoComplete="username" required maxLength={320} value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/10" /></div></div>
+              <div><label htmlFor="admin-password" className="mb-2 block text-xs font-medium text-slate-300">{mode === 'setup' ? 'Create password' : 'Password'}</label><div className="relative"><KeyRound className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" /><input id="admin-password" type={showPassword ? 'text' : 'password'} autoComplete={mode === 'setup' ? 'new-password' : 'current-password'} required minLength={mode === 'setup' ? 12 : 1} maxLength={1024} value={password} onChange={e => setPassword(e.target.value)} placeholder={mode === 'setup' ? 'At least 12 characters' : 'Enter your password'} className="w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-11 pr-12 text-sm outline-none transition focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/10" /><button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-2.5 rounded-lg p-1.5 text-slate-400 hover:text-white">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>{mode === 'setup' && <p className="mt-2 text-[11px] leading-5 text-slate-500">Use 12+ characters with uppercase, lowercase and a number. Save it securely; password reset by email is not configured yet.</p>}</div>
+              <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-200 to-amber-400 px-4 py-3.5 text-sm font-bold text-[#17120a] shadow-lg shadow-amber-500/10 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><ShieldCheck className="h-4 w-4" />{mode === 'setup' ? 'Create secure admin account' : 'Unlock admin workspace'}<ArrowRight className="h-4 w-4" /></>}</button>
+            </form>
+          )}
+          <div className="mt-8 border-t border-white/10 pt-5 text-center"><Link href="/" className="text-xs text-slate-500 transition hover:text-white">← Return to public website</Link></div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

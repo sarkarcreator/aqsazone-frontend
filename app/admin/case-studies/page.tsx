@@ -51,7 +51,7 @@ export default function AdminCaseStudiesPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl('/api/case-studies?admin=true'), { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(apiUrl('/api/case-studies?admin=true'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setCaseStudies(data.caseStudies || []);
@@ -111,7 +111,7 @@ export default function AdminCaseStudiesPage() {
     if (!confirm('Are you sure you want to delete this case study?')) return;
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/case-studies/${id}`), {
+      const res = await fetch(apiUrl(`/api/case-studies/${id}`), { credentials: 'include',
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

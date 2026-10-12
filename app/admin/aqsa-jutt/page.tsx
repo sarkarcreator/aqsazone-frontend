@@ -16,7 +16,7 @@ export default function AqsaJuttProfileAdmin() {
  const [saving,setSaving] = useState(false);
  const [notice,setNotice] = useState("");
  useEffect(()=>{ (async()=>{try{
-  const r=await fetch(apiUrl('/api/settings'),{cache:'no-store'});
+  const r=await fetch(apiUrl('/api/settings'),{ credentials: 'include',cache:'no-store'});
   if(!r.ok) throw new Error('Settings could not be loaded');
   const d=await r.json();
   if(d.settings?.aqsa_jutt_profile){setProfile(parseAqsaJuttProfile(d.settings.aqsa_jutt_profile));}
@@ -24,7 +24,7 @@ export default function AqsaJuttProfileAdmin() {
  const update=(key:keyof AqsaJuttProfile,value:any)=>setProfile(p=>({...p,[key]:value}));
  const save=async()=>{setSaving(true);setNotice('');try{
   const token=localStorage.getItem('admin_token')||'';
-  const r=await fetch(apiUrl('/api/settings'),{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({aqsa_jutt_profile:JSON.stringify(profile)})});
+  const r=await fetch(apiUrl('/api/settings'),{ credentials: 'include',method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({aqsa_jutt_profile:JSON.stringify(profile)})});
   if(!r.ok) throw new Error('Save failed. Check your admin session and API permissions.');
   setNotice('Profile saved successfully. Public pages will reflect published changes.');
  }catch(e){setNotice(e instanceof Error?e.message:'Unable to save profile');}finally{setSaving(false);}};

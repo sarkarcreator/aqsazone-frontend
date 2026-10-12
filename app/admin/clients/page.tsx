@@ -62,7 +62,7 @@ export default function AdminClientsPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl('/api/clients'), {
+      const res = await fetch(apiUrl('/api/clients'), { credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -87,7 +87,7 @@ export default function AdminClientsPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/clients/${selectedClient.id}/projects`), {
+      const res = await fetch(apiUrl(`/api/clients/${selectedClient.id}/projects`), { credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

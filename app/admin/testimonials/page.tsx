@@ -42,7 +42,7 @@ export default function AdminTestimonialsPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl('/api/testimonials?admin=true'), { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(apiUrl('/api/testimonials?admin=true'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setTestimonials(data.testimonials || []);
@@ -92,7 +92,7 @@ export default function AdminTestimonialsPage() {
     if (!confirm('Are you sure you want to delete this testimonial?')) return;
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/testimonials/${id}`), {
+      const res = await fetch(apiUrl(`/api/testimonials/${id}`), { credentials: 'include',
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

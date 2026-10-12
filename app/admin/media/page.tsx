@@ -49,7 +49,7 @@ export default function AdminMediaPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl('/api/media'), { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(apiUrl('/api/media'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const d = await res.json();
         setMediaList(d.media || []);
@@ -75,7 +75,7 @@ export default function AdminMediaPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl('/api/media'), {
+      const res = await fetch(apiUrl('/api/media'), { credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export default function AdminMediaPage() {
     if (!confirm('Delete this media asset record?')) return;
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/media?id=${id}`), {
+      const res = await fetch(apiUrl(`/api/media?id=${id}`), { credentials: 'include',
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

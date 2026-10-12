@@ -67,7 +67,7 @@ export default function AdminServicesPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl('/api/services?admin=true'), { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(apiUrl('/api/services?admin=true'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setServices(data.services || []);
@@ -128,7 +128,7 @@ export default function AdminServicesPage() {
   const handleTogglePublish = async (service: Service) => {
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/services/${service.id}`), {
+      const res = await fetch(apiUrl(`/api/services/${service.id}`), { credentials: 'include',
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export default function AdminServicesPage() {
   const handleToggleFeatured = async (service: Service) => {
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/services/${service.id}`), {
+      const res = await fetch(apiUrl(`/api/services/${service.id}`), { credentials: 'include',
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ export default function AdminServicesPage() {
 
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/services/${serviceId}`), {
+      const res = await fetch(apiUrl(`/api/services/${serviceId}`), { credentials: 'include',
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
