@@ -56,8 +56,8 @@ export default function AdminDashboardPage() {
       try {
         const token = localStorage.getItem('admin_token') || '';
         const [resAnalytics, resLeads] = await Promise.all([
-          fetch(apiUrl('/api/analytics'), { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(apiUrl('/api/leads'), { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(apiUrl('/api/analytics'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } }),
+          fetch(apiUrl('/api/leads'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         if (resAnalytics.ok) {
@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
   const handleQuickStatusChange = async (leadId: number, newStatus: string) => {
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/leads/${leadId}`), {
+      const res = await fetch(apiUrl(`/api/leads/${leadId}`), { credentials: 'include',
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
