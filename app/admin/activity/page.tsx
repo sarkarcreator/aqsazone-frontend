@@ -22,7 +22,7 @@ export default function AdminActivityPage() {
     async function loadLogs() {
       try {
         const token = localStorage.getItem('admin_token') || '';
-        const res = await fetch(apiUrl('/api/analytics'), {
+        const res = await fetch(apiUrl('/api/analytics'), { credentials: 'include',
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
