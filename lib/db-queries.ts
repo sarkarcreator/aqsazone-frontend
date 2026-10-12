@@ -72,7 +72,11 @@ export async function getServices(options?: { publishedOnly?: boolean; featuredO
   const params = new URLSearchParams();
   if (options?.publishedOnly) params.set('admin', 'false');
   if (options?.featuredOnly) params.set('featured', 'true');
-  const data = await getPublicJson<{ services: any[] }>(`/api/services${params.toString() ? `?${params}` : ''}`, { services: [] });
+  const endpoint = `/api/services${params.toString() ? `?${params}` : ''}`;
+  const fallback = { services: [] };
+  const data = options?.publishedOnly
+    ? await getPublicJson<{ services: any[] }>(endpoint, fallback)
+    : await getJson<{ services: any[] }>(endpoint, undefined, fallback);
   let services = data.services || [];
   if (options?.featuredOnly) services = services.filter((item) => item.isFeatured);
   return services;
@@ -94,7 +98,11 @@ export async function getProjects(options?: {
   if (options?.format && options.format !== 'all') params.set('format', options.format);
   if (options?.sourceType && options.sourceType !== 'all') params.set('sourceType', options.sourceType);
   if (options?.search) params.set('search', options.search);
-  const data = await getPublicJson<{ projects: any[] }>(`/api/projects?${params}`, { projects: [] });
+  const endpoint = `/api/projects?${params}`;
+  const fallback = { projects: [] };
+  const data = options?.publishedOnly
+    ? await getPublicJson<{ projects: any[] }>(endpoint, fallback)
+    : await getJson<{ projects: any[] }>(endpoint, undefined, fallback);
   return data.projects || [];
 }
 
@@ -108,7 +116,11 @@ export async function getCaseStudies(options?: { publishedOnly?: boolean; featur
   if (!options?.publishedOnly) params.set('admin', 'true');
   else params.set('admin', 'false');
   if (options?.featuredOnly) params.set('featured', 'true');
-  const data = await getPublicJson<{ caseStudies: any[] }>(`/api/case-studies?${params}`, { caseStudies: [] });
+  const endpoint = `/api/case-studies?${params}`;
+  const fallback = { caseStudies: [] };
+  const data = options?.publishedOnly
+    ? await getPublicJson<{ caseStudies: any[] }>(endpoint, fallback)
+    : await getJson<{ caseStudies: any[] }>(endpoint, undefined, fallback);
   return data.caseStudies || [];
 }
 
@@ -122,7 +134,11 @@ export async function getTestimonials(options?: { publishedOnly?: boolean; featu
   if (!options?.publishedOnly) params.set('admin', 'true');
   else params.set('admin', 'false');
   if (options?.featuredOnly) params.set('featured', 'true');
-  const data = await getPublicJson<{ testimonials: any[] }>(`/api/testimonials?${params}`, { testimonials: [] });
+  const endpoint = `/api/testimonials?${params}`;
+  const fallback = { testimonials: [] };
+  const data = options?.publishedOnly
+    ? await getPublicJson<{ testimonials: any[] }>(endpoint, fallback)
+    : await getJson<{ testimonials: any[] }>(endpoint, undefined, fallback);
   let list = data.testimonials || [];
   if (options?.featuredOnly) list = list.filter((item) => item.isFeatured);
   return list;
