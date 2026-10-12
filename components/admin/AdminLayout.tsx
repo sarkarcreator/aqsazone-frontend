@@ -2,6 +2,7 @@
 
 
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from '@/lib/api-client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -43,28 +44,35 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const getCookie = (name: string) => {
-    if (typeof document === 'undefined') return null;
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-    return null;
-  };
-
   useEffect(() => {
-    // Check local session or cookie
-    const token = localStorage.getItem('admin_token') || getCookie('admin_token');
-    if (!token && pathname !== '/admin/login') {
-      router.push('/admin/login');
-    } else {
+    let active = true;
+    if (pathname === '/admin/login') {
       setAuthenticated(true);
+      return () => { active = false; };
     }
+    fetch(apiUrl('/api/admin/session'), { credentials: 'include', cache: 'no-store' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Unauthorized');
+        return res.json();
+      })
+      .then((data) => {
+        if (!active) return;
+        if (data.authenticated) setAuthenticated(true);
+        else router.replace('/admin/login');
+      })
+      .catch(() => {
+        if (active) router.replace('/admin/login');
+      });
+    return () => { active = false; };
   }, [pathname, router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
-    document.cookie = 'admin_token=; path=/; max-age=0';
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    try {
+      await fetch(apiUrl('/api/admin/session'), { method: 'DELETE', credentials: 'include' });
+    } finally {
+      router.replace('/admin/login');
+      router.refresh();
+    }
   };
 
   const navItems = [
