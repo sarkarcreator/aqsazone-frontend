@@ -5,5 +5,8 @@ export function apiUrl(path: string) {
 }
 
 export async function apiFetch(path: string, init?: RequestInit) {
-  return fetch(apiUrl(path), init);
+  return fetch(apiUrl(path), {
+    ...init,
+    credentials: init?.credentials ?? 'include',
+  });
 }
