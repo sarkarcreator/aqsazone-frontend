@@ -74,6 +74,7 @@ export default function AdminLayout({
     { label: 'Clients', href: '/admin/clients', icon: Briefcase },
     { label: 'Services Catalogue', href: '/admin/services', icon: Sparkles },
     { label: 'Projects & Work', href: '/admin/projects', icon: FolderKanban },
+    { label: 'Aqsa Jutt CV Profile', href: '/admin/aqsa-jutt', icon: FileText },
     { label: 'Case Studies', href: '/admin/case-studies', icon: TrendingUp },
     { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
     { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
