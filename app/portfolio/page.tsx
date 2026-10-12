@@ -12,7 +12,8 @@ export const metadata = {
  description: "Explore Aqsa Jutt's professional experience in content writing, short-form scripts, SEO technology articles and video editing."
 };
 
-export const revalidate = 30;
+// Fetch profile settings and published projects at request time, not during Vercel's build.
+export const dynamic = 'force-dynamic';
 
 export default async function PortfolioPage() {
  const [projectsList, settings] = await Promise.all([getProjects({ publishedOnly: true }), getSiteSettings()]);
