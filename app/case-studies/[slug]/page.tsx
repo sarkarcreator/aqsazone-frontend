@@ -18,7 +18,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function CaseStudyDetailPage({
   params,
