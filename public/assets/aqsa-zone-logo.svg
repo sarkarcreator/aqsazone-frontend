@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="160" viewBox="0 0 640 160" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Aqsa Zone</title>
+  <desc id="desc">Gold and white A Z monogram with Aqsa Zone wordmark.</desc>
+  <defs>
+    <linearGradient id="gold" x1="18" y1="12" x2="135" y2="136" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE78A"/><stop offset=".48" stop-color="#D99A22"/><stop offset="1" stop-color="#FFF0A6"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="70" y1="15" x2="140" y2="125" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#C9D0DA"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(8 8)">
+    <path d="M10 119 69 13 113 88 94 103 69 59 39 119Z" fill="url(#gold)"/>
+    <path d="M72 44H135L81 113H119L133 96 147 110 131 132H43L101 62H82Z" fill="url(#silver)"/>
+    <path d="M25 128C55 143 115 143 155 105" stroke="url(#gold)" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="180" y="83" font-size="49" font-weight="700" letter-spacing="-1.6" fill="#F8FAFC">AQSA</text>
+    <text x="318" y="83" font-size="49" font-weight="700" letter-spacing="-1.1" fill="url(#gold)">ZONE</text>
+    <path d="M182 101H490" stroke="#D9A441" stroke-opacity=".7"/>
+    <text x="183" y="124" font-size="12" font-weight="500" letter-spacing="4.2" fill="#D8DEE8">IDEAS  |  DESIGN  |  DIGITAL</text>
+  </g>
+</svg>
