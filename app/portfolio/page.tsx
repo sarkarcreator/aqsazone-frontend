@@ -7,6 +7,11 @@ import { getProjects, getSiteSettings } from '@/lib/db-queries';
 import { FolderKanban, ArrowRight, BriefcaseBusiness, FileText, MessageCircle, PenLine, Search, Video } from 'lucide-react';
 import { parseAqsaJuttProfile } from '@/lib/aqsa-profile';
 
+export const metadata = {
+ title: "Portfolio | Aqsa Jutt Content Writing & Video",
+ description: "Explore Aqsa Jutt's professional experience in content writing, short-form scripts, SEO technology articles and video editing."
+};
+
 export const revalidate = 30;
 
 export default async function PortfolioPage() {
