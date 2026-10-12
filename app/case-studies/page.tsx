@@ -5,7 +5,7 @@ import CaseStudiesSection from '@/components/CaseStudiesSection';
 import { getCaseStudies, getSiteSettings } from '@/lib/db-queries';
 import { TrendingUp, Sparkles } from 'lucide-react';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function CaseStudiesPage() {
   const [caseStudiesList, settings] = await Promise.all([
