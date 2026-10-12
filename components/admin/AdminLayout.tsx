@@ -67,6 +67,7 @@ export default function AdminLayout({
   }, [pathname, router]);
 
   const handleLogout = async () => {
+    localStorage.removeItem('admin_token');
     try {
       await fetch(apiUrl('/api/admin/session'), { method: 'DELETE', credentials: 'include' });
     } finally {
