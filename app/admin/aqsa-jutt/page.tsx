@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiUrl } from '@/lib/api-client';
-import { defaultAqsaJuttProfile, AqsaJuttProfile } from '@/lib/aqsa-profile';
+import { defaultAqsaJuttProfile, AqsaJuttProfile, parseAqsaJuttProfile } from '@/lib/aqsa-profile';
 import { Plus, Save, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const fieldClass = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-purple-500";
@@ -19,7 +19,7 @@ export default function AqsaJuttProfileAdmin() {
   const r=await fetch(apiUrl('/api/settings'),{cache:'no-store'});
   if(!r.ok) throw new Error('Settings could not be loaded');
   const d=await r.json();
-  if(d.settings?.aqsa_jutt_profile){try{setProfile({...defaultAqsaJuttProfile,...JSON.parse(d.settings.aqsa_jutt_profile)});}catch{}}
+  if(d.settings?.aqsa_jutt_profile){setProfile(parseAqsaJuttProfile(d.settings.aqsa_jutt_profile));}
  }catch(e){setNotice(e instanceof Error?e.message:'Unable to load settings');}finally{setLoading(false);}})();},[]);
  const update=(key:keyof AqsaJuttProfile,value:any)=>setProfile(p=>({...p,[key]:value}));
  const save=async()=>{setSaving(true);setNotice('');try{
