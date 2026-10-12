@@ -1,4 +1,5 @@
 import React from 'react';
+import { getServices } from '@/lib/db-queries';
 import Link from 'next/link';
 import {
   Mail,
@@ -16,7 +17,8 @@ interface FooterProps {
   settings?: Record<string, string>;
 }
 
-export default function Footer({ settings = {} }: FooterProps) {
+export default async function Footer({ settings = {} }: FooterProps) {
+  const services = await getServices({ publishedOnly: true });
   const collaborationEnabled = settings.collaboration_enabled !== 'false';
   const collaborationTitle = settings.collaboration_title || 'Professional Collaboration';
   const collaborationText =
@@ -149,42 +151,25 @@ export default function Footer({ settings = {} }: FooterProps) {
             </ul>
           </div>
 
-          {/* Col 4: Top Services */}
+          {/* Col 4: Services from the published CMS catalogue */}
           <div>
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
               Services
             </h4>
             <ul className="space-y-2.5 text-sm">
-              <li>
-                <Link href="/services/ai-agents-automation" className="hover:text-purple-300 transition-colors">
-                  AI Agents & Workflows
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/web-app-development" className="hover:text-purple-300 transition-colors">
-                  Web & App Engineering
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/brand-identity-design" className="hover:text-purple-300 transition-colors">
-                  Brand Identity & Design
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/seo-google-ranking" className="hover:text-purple-300 transition-colors">
-                  SEO & Search Dominance
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/digital-marketing-ads" className="hover:text-purple-300 transition-colors">
-                  Performance Marketing
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/digital-skills-training" className="hover:text-purple-300 transition-colors">
-                  Digital Skills Workshops
-                </Link>
-              </li>
+              {services.map((service: { id: number; name: string; slug: string }) => (
+                <li key={service.id}>
+                  <Link
+                    href={`/services/${service.slug}`}
+                    className="hover:text-purple-300 transition-colors"
+                  >
+                    {service.name}
+                  </Link>
+                </li>
+              ))}
+              {services.length === 0 && (
+                <li className="text-slate-500">No published services yet.</li>
+              )}
             </ul>
           </div>
 
