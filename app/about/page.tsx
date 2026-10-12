@@ -6,6 +6,11 @@ import { getSiteSettings } from '@/lib/db-queries';
 import { parseAqsaJuttProfile } from '@/lib/aqsa-profile';
 import { ArrowRight, BriefcaseBusiness, GraduationCap, MapPin, Languages, Sparkles, MessageCircle, PenLine, Search, Video } from 'lucide-react';
 
+export const metadata = {
+ title: "About Aqsa Jutt | Content Writer & Script Writer",
+ description: "Meet Aqsa Jutt, a content writer, script writer, SEO tech article writer and video editor based in Faisalabad. Explore skills, experience and education."
+};
+
 export const revalidate = 30;
 
 export default async function AboutPage() {
