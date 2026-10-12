@@ -71,22 +71,15 @@ export default function Navbar({ onOpenInquiry }: NavbarProps) {
               href="/"
               className="group flex items-center gap-2.5 text-slate-100 hover:text-white transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-500 p-0.5 shadow-md shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-all">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-300 text-lg tracking-wider">
-                    AZ
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
-                  Aqsa Zone
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Available for projects" />
-                </span>
-                <span className="text-[10px] tracking-wider uppercase text-purple-300/80 font-medium">
-                  Digital Services • Portfolio
-                </span>
-              </div>
+              <img
+                src="/assets/aqsa-zone-logo.svg"
+                alt="Aqsa Zone — Ideas | Design | Digital"
+                width={240}
+                height={60}
+                fetchPriority="high"
+                decoding="async"
+                className="h-11 sm:h-12 w-auto object-contain"
+              />
             </Link>
 
             {/* Desktop Navigation */}
