@@ -14,6 +14,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import SearchModal from './SearchModal';
+import { apiUrl } from '@/lib/api-client';
 
 interface NavbarProps {
   onOpenInquiry?: (serviceName?: string, projectName?: string) => void;
@@ -23,6 +24,7 @@ export default function Navbar({ onOpenInquiry }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [services, setServices] = useState<Array<{ id: number; name: string; slug: string }>>([]);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -31,6 +33,38 @@ export default function Navbar({ onOpenInquiry }: NavbarProps) {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Keep service navigation connected to the same published CMS catalogue as the footer.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPublishedServices = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/services?admin=false'));
+        if (!response.ok) throw new Error(`Services request failed: ${response.status}`);
+        const data = await response.json();
+        if (!cancelled) {
+          const published = Array.isArray(data.services) ? data.services : [];
+          setServices(
+            published.filter(
+              (service: { id?: unknown; name?: unknown; slug?: unknown; isPublished?: unknown }) =>
+                typeof service.id === 'number' &&
+                typeof service.name === 'string' &&
+                typeof service.slug === 'string' &&
+                service.isPublished !== false
+            )
+          );
+        }
+      } catch (error) {
+        console.error('Failed to load published navigation services:', error);
+      }
+    };
+
+    loadPublishedServices();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Keyboard shortcut Ctrl/Cmd + K for search
@@ -85,7 +119,60 @@ export default function Navbar({ onOpenInquiry }: NavbarProps) {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1 bg-slate-900/60 border border-slate-800/80 px-4 py-1.5 rounded-full backdrop-blur-sm">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href;
+                const isActive =
+                  pathname === link.href ||
+                  (link.href === '/services' && pathname.startsWith('/services/'));
+
+                if (link.href === '/services') {
+                  return (
+                    <div key={link.href} className="group relative">
+                      <Link
+                        href="/services"
+                        prefetch={true}
+                        className={`inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          isActive
+                            ? 'text-white bg-purple-600/25 border border-purple-500/30 shadow-sm'
+                            : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                        }`}
+                      >
+                        Services
+                        <span aria-hidden="true" className="text-[10px] opacity-70">▾</span>
+                      </Link>
+                      <div className="invisible absolute left-0 top-full z-50 mt-2 w-72 translate-y-1 rounded-2xl border border-slate-800 bg-slate-950/95 p-2 opacity-0 shadow-2xl backdrop-blur-xl transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                        <Link
+                          href="/services"
+                          prefetch={true}
+                          className="block rounded-xl px-3 py-2 text-xs font-semibold text-purple-300 hover:bg-slate-900"
+                        >
+                          View All Services
+                        </Link>
+                        <div className="my-1 border-t border-slate-800" />
+                        <div className="max-h-80 overflow-y-auto">
+                          {services.map((service) => (
+                            <Link
+                              key={service.id}
+                              href={`/services/${service.slug}`}
+                              prefetch={true}
+                              className={`block rounded-xl px-3 py-2 text-sm transition-colors ${
+                                pathname === `/services/${service.slug}`
+                                  ? 'bg-purple-600/20 text-purple-200'
+                                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                              }`}
+                            >
+                              {service.name}
+                            </Link>
+                          ))}
+                          {services.length === 0 && (
+                            <p className="px-3 py-2 text-xs text-slate-500">
+                              No published services available.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <Link
                     key={link.href}
@@ -157,21 +244,43 @@ export default function Navbar({ onOpenInquiry }: NavbarProps) {
           <div className="lg:hidden mt-3 border-t border-slate-800 bg-slate-950/95 backdrop-blur-xl px-4 py-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href;
+                const isActive =
+                  pathname === link.href ||
+                  (link.href === '/services' && pathname.startsWith('/services/'));
                 return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    prefetch={true}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`px-4 py-2.5 rounded-xl text-base font-medium transition-colors ${
-                      isActive
-                        ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
-                        : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
+                  <React.Fragment key={link.href}>
+                    <Link
+                      href={link.href}
+                      prefetch={true}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`px-4 py-2.5 rounded-xl text-base font-medium transition-colors ${
+                        isActive
+                          ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
+                          : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                    {link.href === '/services' && services.length > 0 && (
+                      <div className="ml-4 mb-2 flex flex-col gap-1 border-l border-slate-800 pl-3">
+                        {services.map((service) => (
+                          <Link
+                            key={service.id}
+                            href={`/services/${service.slug}`}
+                            prefetch={true}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                              pathname === `/services/${service.slug}`
+                                ? 'text-purple-300 bg-purple-600/10'
+                                : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                            }`}
+                          >
+                            {service.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </React.Fragment>
                 );
               })}
 
