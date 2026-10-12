@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: 'Aqsa Zone | Digital Services & Creative Portfolio',
   description:
     'Turning Ideas Into Digital Experiences. Professional portfolio and digital services in Web Development, AI Automation, Branding, and Marketing by Aqsa.',
+  icons: {
+    icon: '/assets/aqsa-zone-icon.svg',
+    shortcut: '/assets/aqsa-zone-icon.svg',
+  },
   openGraph: {
     title: 'Aqsa Zone | Digital Services & Creative Portfolio',
     description:
