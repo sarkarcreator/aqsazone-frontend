@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
 
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl('/api/settings'), {
+      const res = await fetch(apiUrl('/api/settings'), { credentials: 'include',
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
