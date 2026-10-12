@@ -85,7 +85,7 @@ export default function AdminLeadsPage() {
       if (startDate) params.set('startDate', startDate);
       if (endDate) params.set('endDate', endDate);
 
-      const res = await fetch(apiUrl(`/api/leads?${params.toString()}`), {
+      const res = await fetch(apiUrl(`/api/leads?${params.toString()}`), { credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -109,7 +109,7 @@ export default function AdminLeadsPage() {
     setFeedback('');
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/leads/${leadId}`), {
+      const res = await fetch(apiUrl(`/api/leads/${leadId}`), { credentials: 'include',
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ export default function AdminLeadsPage() {
     setSaving(true);
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/leads/${leadId}/convert`), {
+      const res = await fetch(apiUrl(`/api/leads/${leadId}/convert`), { credentials: 'include',
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -160,7 +160,7 @@ export default function AdminLeadsPage() {
     if (!confirm('Are you sure you want to permanently delete this lead?')) return;
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/leads/${leadId}`), {
+      const res = await fetch(apiUrl(`/api/leads/${leadId}`), { credentials: 'include',
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -249,7 +249,7 @@ export default function AdminLeadsPage() {
         if (exportStartDate) params.set('startDate', exportStartDate);
         if (exportEndDate) params.set('endDate', exportEndDate);
 
-        const res = await fetch(apiUrl(`/api/leads?${params.toString()}`), {
+        const res = await fetch(apiUrl(`/api/leads?${params.toString()}`), { credentials: 'include',
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok && isMounted) {
@@ -293,7 +293,7 @@ export default function AdminLeadsPage() {
       if (exportStartDate) params.set('startDate', exportStartDate);
       if (exportEndDate) params.set('endDate', exportEndDate);
 
-      const res = await fetch(apiUrl(`/api/leads?${params.toString()}`), {
+      const res = await fetch(apiUrl(`/api/leads?${params.toString()}`), { credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
       });
 
