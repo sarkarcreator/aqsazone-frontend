@@ -18,7 +18,7 @@ import {
   Layers,
 } from 'lucide-react';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function ServiceDetailPage({
   params,
@@ -26,22 +26,21 @@ export default async function ServiceDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [service, settings] = await Promise.all([
+  const [service, settings, allProjects, allCaseStudies] = await Promise.all([
     getServiceBySlug(slug),
     getSiteSettings(),
+    getProjects({ publishedOnly: true }),
+    getCaseStudies({ publishedOnly: true }),
   ]);
 
   if (!service) {
     notFound();
   }
 
-  // Get related projects and case studies for this service
-  const allProjects = await getProjects({ publishedOnly: true });
+  // Filter related content after fetching public datasets concurrently.
   const relatedProjects = allProjects.filter(
     (p) => p.serviceId === service.id || p.categoryId === service.categoryId
   );
-
-  const allCaseStudies = await getCaseStudies({ publishedOnly: true });
   const relatedCaseStudies = allCaseStudies.filter(
     (cs) => cs.relatedServiceId === service.id
   );
