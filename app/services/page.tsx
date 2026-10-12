@@ -6,7 +6,7 @@ import { getServices, getSiteSettings, getCategories } from '@/lib/db-queries';
 import { Sparkles, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import Link from 'next/link';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function ServicesPage() {
   const [servicesList, settings, categories] = await Promise.all([
