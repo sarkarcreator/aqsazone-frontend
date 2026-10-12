@@ -11,7 +11,8 @@ export const metadata = {
  description: "Meet Aqsa Jutt, a content writer, script writer, SEO tech article writer and video editor based in Faisalabad. Explore skills, experience and education."
 };
 
-export const revalidate = 30;
+// Fetch profile settings at request time so CV edits are not frozen into a build-time snapshot.
+export const dynamic = 'force-dynamic';
 
 export default async function AboutPage() {
  const settings = await getSiteSettings();
