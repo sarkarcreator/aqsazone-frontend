@@ -91,8 +91,8 @@ export default function AdminProjectsPage() {
     try {
       const token = localStorage.getItem('admin_token') || '';
       const [resProj, resSvc] = await Promise.all([
-        fetch(apiUrl('/api/projects?admin=true'), { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(apiUrl('/api/services?admin=true'), { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(apiUrl('/api/projects?admin=true'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } }),
+        fetch(apiUrl('/api/services?admin=true'), { credentials: 'include', headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
       if (resProj.ok) {
@@ -179,7 +179,7 @@ export default function AdminProjectsPage() {
     if (!confirm('Are you sure you want to permanently delete this project?')) return;
     try {
       const token = localStorage.getItem('admin_token') || '';
-      const res = await fetch(apiUrl(`/api/projects/${projectId}`), {
+      const res = await fetch(apiUrl(`/api/projects/${projectId}`), { credentials: 'include',
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
