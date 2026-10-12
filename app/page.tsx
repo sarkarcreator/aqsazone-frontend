@@ -25,7 +25,7 @@ import {
   Award,
 } from 'lucide-react';
 
-export const revalidate = 0; // Dynamic on request
+export const revalidate = 30;
 
 export default async function HomePage() {
   const [settings, servicesList, projectsList, caseStudiesList, testimonialsList] =
