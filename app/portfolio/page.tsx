@@ -5,7 +5,7 @@ import PortfolioGrid from '@/components/PortfolioGrid';
 import { getProjects, getSiteSettings } from '@/lib/db-queries';
 import { FolderKanban, Sparkles } from 'lucide-react';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function PortfolioPage() {
   const [projectsList, settings] = await Promise.all([
