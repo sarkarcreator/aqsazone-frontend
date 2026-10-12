@@ -90,6 +90,7 @@ export default function Navbar({ onOpenInquiry }: NavbarProps) {
                   <Link
                     key={link.href}
                     href={link.href}
+                    prefetch={true}
                     className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ${
                       isActive
                         ? 'text-white bg-purple-600/25 border border-purple-500/30 shadow-sm'
@@ -161,6 +162,7 @@ export default function Navbar({ onOpenInquiry }: NavbarProps) {
                   <Link
                     key={link.href}
                     href={link.href}
+                    prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`px-4 py-2.5 rounded-xl text-base font-medium transition-colors ${
                       isActive
