@@ -56,13 +56,16 @@ export default function Footer({ settings = {} }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-900">
           {/* Col 1 & 2: Brand Identity */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="inline-flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 p-0.5">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-bold text-white text-base">
-                  AZ
-                </div>
-              </div>
-              <span className="text-xl font-bold tracking-tight text-white">Aqsa Zone</span>
+            <Link href="/" className="inline-flex items-center">
+              <img
+                src="/assets/aqsa-zone-logo.svg"
+                alt="Aqsa Zone — Ideas | Design | Digital"
+                width={240}
+                height={60}
+                loading="lazy"
+                decoding="async"
+                className="h-11 sm:h-12 w-auto object-contain"
+              />
             </Link>
             <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
               Turning ideas into digital experiences. Dedicated to engineering high-performance web solutions, AI automation pipelines, and elevated brand identities for forward-looking clients worldwide.
