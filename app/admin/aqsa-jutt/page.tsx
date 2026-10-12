@@ -1,0 +1,50 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import AdminLayout from '@/components/admin/AdminLayout';
+import { apiUrl } from '@/lib/api-client';
+import { defaultAqsaJuttProfile, AqsaJuttProfile, parseAqsaJuttProfile } from '@/lib/aqsa-profile';
+import { Plus, Save, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
+
+const fieldClass = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-purple-500";
+const labelClass = "mb-1.5 block text-xs font-semibold text-slate-300";
+const makeId = () => `entry-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+
+export default function AqsaJuttProfileAdmin() {
+ const [profile,setProfile] = useState<AqsaJuttProfile>(defaultAqsaJuttProfile);
+ const [loading,setLoading] = useState(true);
+ const [saving,setSaving] = useState(false);
+ const [notice,setNotice] = useState("");
+ useEffect(()=>{ (async()=>{try{
+  const r=await fetch(apiUrl('/api/settings'),{cache:'no-store'});
+  if(!r.ok) throw new Error('Settings could not be loaded');
+  const d=await r.json();
+  if(d.settings?.aqsa_jutt_profile){setProfile(parseAqsaJuttProfile(d.settings.aqsa_jutt_profile));}
+ }catch(e){setNotice(e instanceof Error?e.message:'Unable to load settings');}finally{setLoading(false);}})();},[]);
+ const update=(key:keyof AqsaJuttProfile,value:any)=>setProfile(p=>({...p,[key]:value}));
+ const save=async()=>{setSaving(true);setNotice('');try{
+  const token=localStorage.getItem('admin_token')||'';
+  const r=await fetch(apiUrl('/api/settings'),{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({aqsa_jutt_profile:JSON.stringify(profile)})});
+  if(!r.ok) throw new Error('Save failed. Check your admin session and API permissions.');
+  setNotice('Profile saved successfully. Public pages will reflect published changes.');
+ }catch(e){setNotice(e instanceof Error?e.message:'Unable to save profile');}finally{setSaving(false);}};
+ const updateItem=(section:'experience'|'education'|'languages',id:string,key:string,value:any)=>setProfile(p=>({...p,[section]:(p[section] as any[]).map(item=>item.id===id?{...item,[key]:value}:item)}));
+ const updateSkill=(id:string,key:'name'|'published',value:string|boolean)=>setProfile(p=>({...p,skills:p.skills.map(skill=>skill.id===id?{...skill,[key]:value}:skill)}));
+ const removeItem=(section:'experience'|'education'|'languages',id:string)=>{if(confirm('Delete this entry? This will be saved when you click Save Changes.'))setProfile(p=>({...p,[section]:(p[section] as any[]).filter(item=>item.id!==id)}));};
+ const addItem=(section:'experience'|'education'|'languages')=>setProfile(p=>({...p,[section]:[...(p[section] as any[]),section==='experience'?{id:makeId(),company:'',role:'',duration:'',period:'',description:'',published:true}:section==='education'?{id:makeId(),degree:'',institution:'',year:'',published:true}:{id:makeId(),name:'',level:'',published:true}]}));
+ const togglePublished=(section:'experience'|'education'|'languages',id:string,value:boolean)=>updateItem(section,id,'published',value);
+ if(loading)return <AdminLayout title="Aqsa Jutt Profile" subtitle="Manage public CV content"><div className="p-8 text-slate-400">Loading profile…</div></AdminLayout>;
+ return <AdminLayout title="Aqsa Jutt — CV & Portfolio Content" subtitle="Manage About Me and Portfolio content. Changes are stored in website settings and only published entries appear publicly." actions={<button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving?<Loader2 className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}Save Changes</button>}>
+  <div className="max-w-5xl space-y-6">
+   {notice&&<div className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-slate-200">{notice}</div>}
+   <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6 space-y-4">
+    <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-white">Profile & About Me</h2><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={profile.published} onChange={e=>update('published',e.target.checked)}/>{profile.published?<Eye className="h-4 w-4"/>:<EyeOff className="h-4 w-4"/>}Published</label></div>
+    <div className="grid sm:grid-cols-2 gap-4"><label><span className={labelClass}>Full name</span><input className={fieldClass} value={profile.name} onChange={e=>update('name',e.target.value)}/></label><label><span className={labelClass}>Designation</span><input className={fieldClass} value={profile.title} onChange={e=>update('title',e.target.value)}/></label><label className="sm:col-span-2"><span className={labelClass}>Location</span><input className={fieldClass} value={profile.location} onChange={e=>update('location',e.target.value)}/></label><label className="sm:col-span-2"><span className={labelClass}>Introduction / About Me</span><textarea rows={5} className={fieldClass} value={profile.intro} onChange={e=>update('intro',e.target.value)}/></label></div>
+   </section>
+   <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-bold text-white">Skills</h2><p className="mt-1 text-xs text-slate-400">Edit, remove, or publish each skill independently.</p></div><button type="button" onClick={()=>update('skills',[...profile.skills,{id:makeId(),name:'',published:true}])} className="inline-flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-2 text-xs text-white"><Plus className="h-4 w-4"/>Add skill</button></div><div className="mt-4 space-y-2">{profile.skills.map(skill=><div key={skill.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-2"><input className={fieldClass+" flex-1"} value={skill.name} onChange={e=>updateSkill(skill.id,'name',e.target.value)} placeholder="Skill name"/><label className="flex items-center gap-1.5 px-2 text-xs text-slate-400"><input type="checkbox" checked={skill.published} onChange={e=>updateSkill(skill.id,'published',e.target.checked)}/>{skill.published?'Published':'Hidden'}</label><button type="button" aria-label="Delete skill" onClick={()=>update('skills',profile.skills.filter(item=>item.id!==skill.id))} className="rounded-lg border border-red-900/70 px-3 py-2 text-red-300"><Trash2 className="h-4 w-4"/></button></div>)}</div></section>
+   <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-white">Education</h2><button onClick={()=>addItem('education')} className="inline-flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-2 text-xs text-white"><Plus className="h-4 w-4"/>Add education</button></div><div className="mt-4 space-y-3">{profile.education.map(item=><article key={item.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><div className="mb-3 flex items-center justify-between"><h3 className="font-semibold text-white">{item.degree||'New education'}</h3><div className="flex items-center gap-3"><label className="flex items-center gap-1 text-xs text-slate-400"><input type="checkbox" checked={item.published} onChange={e=>togglePublished('education',item.id,e.target.checked)}/>Publish</label><button onClick={()=>removeItem('education',item.id)} className="text-red-300"><Trash2 className="h-4 w-4"/></button></div></div><div className="grid sm:grid-cols-3 gap-3"><label><span className={labelClass}>Degree</span><input className={fieldClass} value={item.degree} onChange={e=>updateItem('education',item.id,'degree',e.target.value)}/></label><label><span className={labelClass}>Institution</span><input className={fieldClass} value={item.institution} onChange={e=>updateItem('education',item.id,'institution',e.target.value)}/></label><label><span className={labelClass}>Year</span><input className={fieldClass} value={item.year} onChange={e=>updateItem('education',item.id,'year',e.target.value)}/></label></div></article>)}</div></section>
+   <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-white">Languages</h2><button onClick={()=>addItem('languages')} className="inline-flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-2 text-xs text-white"><Plus className="h-4 w-4"/>Add language</button></div><div className="mt-4 space-y-3">{profile.languages.map(item=><article key={item.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><div className="mb-3 flex items-center justify-between"><h3 className="font-semibold text-white">{item.name||'New language'}</h3><div className="flex items-center gap-3"><label className="flex items-center gap-1 text-xs text-slate-400"><input type="checkbox" checked={item.published} onChange={e=>togglePublished('languages',item.id,e.target.checked)}/>Publish</label><button onClick={()=>removeItem('languages',item.id)} className="text-red-300"><Trash2 className="h-4 w-4"/></button></div></div><div className="grid sm:grid-cols-2 gap-3"><label><span className={labelClass}>Language</span><input className={fieldClass} value={item.name} onChange={e=>updateItem('languages',item.id,'name',e.target.value)}/></label><label><span className={labelClass}>Proficiency</span><input className={fieldClass} value={item.level} onChange={e=>updateItem('languages',item.id,'level',e.target.value)}/></label></div></article>)}</div></section>
+   <div className="flex justify-end"><button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{saving?<Loader2 className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}Save Changes</button></div>
+  </div>
+ </AdminLayout>;
+}
