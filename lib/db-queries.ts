@@ -44,13 +44,27 @@ async function getJson<T>(path: string, init?: RequestInit, fallback?: T): Promi
   }
 }
 
+// Public, read-only website data can be reused briefly between visits.
+// Admin mutations and authenticated CRM requests continue to use getJson()
+// with cache: 'no-store'.
+async function getPublicJson<T>(path: string, fallback: T): Promise<T> {
+  try {
+    const res = await fetch(apiUrl(path), { next: { revalidate: 30 } });
+    if (!res.ok) throw new Error(`API request failed: ${res.status}`);
+    return (await res.json()) as T;
+  } catch (error) {
+    console.error(`Public API request failed for ${path}:`, error);
+    return fallback;
+  }
+}
+
 export async function getSiteSettings(): Promise<Record<string, string>> {
-  const data = await getJson<{ settings: Record<string, string> }>('/api/settings', undefined, { settings: {} });
+  const data = await getPublicJson<{ settings: Record<string, string> }>('/api/settings', { settings: {} });
   return data.settings || {};
 }
 
 export async function getCategories() {
-  const data = await getJson<{ categories: any[] }>('/api/services', undefined, { categories: [] });
+  const data = await getPublicJson<{ categories: any[] }>('/api/services', { categories: [] });
   return data.categories || [];
 }
 
@@ -58,14 +72,14 @@ export async function getServices(options?: { publishedOnly?: boolean; featuredO
   const params = new URLSearchParams();
   if (options?.publishedOnly) params.set('admin', 'false');
   if (options?.featuredOnly) params.set('featured', 'true');
-  const data = await getJson<{ services: any[] }>(`/api/services${params.toString() ? `?${params}` : ''}`, undefined, { services: [] });
+  const data = await getPublicJson<{ services: any[] }>(`/api/services${params.toString() ? `?${params}` : ''}`, { services: [] });
   let services = data.services || [];
   if (options?.featuredOnly) services = services.filter((item) => item.isFeatured);
   return services;
 }
 
 export async function getServiceBySlug(slug: string) {
-  const data = await getJson<{ service: any }>(`/api/services/${encodeURIComponent(slug)}`, undefined, { service: null });
+  const data = await getPublicJson<{ service: any }>(`/api/services/${encodeURIComponent(slug)}`, { service: null });
   return data.service || null;
 }
 
@@ -80,12 +94,12 @@ export async function getProjects(options?: {
   if (options?.format && options.format !== 'all') params.set('format', options.format);
   if (options?.sourceType && options.sourceType !== 'all') params.set('sourceType', options.sourceType);
   if (options?.search) params.set('search', options.search);
-  const data = await getJson<{ projects: any[] }>(`/api/projects?${params}`, undefined, { projects: [] });
+  const data = await getPublicJson<{ projects: any[] }>(`/api/projects?${params}`, { projects: [] });
   return data.projects || [];
 }
 
 export async function getProjectBySlug(slug: string) {
-  const data = await getJson<{ project: any }>(`/api/projects/${encodeURIComponent(slug)}`, undefined, { project: null });
+  const data = await getPublicJson<{ project: any }>(`/api/projects/${encodeURIComponent(slug)}`, { project: null });
   return data.project || null;
 }
 
@@ -94,12 +108,12 @@ export async function getCaseStudies(options?: { publishedOnly?: boolean; featur
   if (!options?.publishedOnly) params.set('admin', 'true');
   else params.set('admin', 'false');
   if (options?.featuredOnly) params.set('featured', 'true');
-  const data = await getJson<{ caseStudies: any[] }>(`/api/case-studies?${params}`, undefined, { caseStudies: [] });
+  const data = await getPublicJson<{ caseStudies: any[] }>(`/api/case-studies?${params}`, { caseStudies: [] });
   return data.caseStudies || [];
 }
 
 export async function getCaseStudyBySlug(slug: string) {
-  const data = await getJson<{ caseStudy: any }>(`/api/case-studies/${encodeURIComponent(slug)}`, undefined, { caseStudy: null });
+  const data = await getPublicJson<{ caseStudy: any }>(`/api/case-studies/${encodeURIComponent(slug)}`, { caseStudy: null });
   return data.caseStudy || null;
 }
 
@@ -108,7 +122,7 @@ export async function getTestimonials(options?: { publishedOnly?: boolean; featu
   if (!options?.publishedOnly) params.set('admin', 'true');
   else params.set('admin', 'false');
   if (options?.featuredOnly) params.set('featured', 'true');
-  const data = await getJson<{ testimonials: any[] }>(`/api/testimonials?${params}`, undefined, { testimonials: [] });
+  const data = await getPublicJson<{ testimonials: any[] }>(`/api/testimonials?${params}`, { testimonials: [] });
   let list = data.testimonials || [];
   if (options?.featuredOnly) list = list.filter((item) => item.isFeatured);
   return list;
