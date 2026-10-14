@@ -68,13 +68,13 @@ export default function AdminServicesPage() {
     try {
       const token = localStorage.getItem('admin_token') || '';
       const res = await fetch(apiUrl('/api/services?admin=true'), { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) {
-        const data = await res.json();
-        setServices(data.services || []);
-        setCategories(data.categories || []);
-      }
+      if (!res.ok) throw new Error(`Could not load services and categories (HTTP ${res.status}). Please sign in again if access was denied.`);
+      const data = await res.json();
+      setServices(Array.isArray(data.services) ? data.services : []);
+      setCategories(Array.isArray(data.categories) ? data.categories : []);
     } catch (err) {
       console.error('Failed to load services:', err);
+      setFeedback(err instanceof Error ? err.message : 'Failed to load services and categories.');
     } finally {
       setLoading(false);
     }
@@ -206,7 +206,7 @@ export default function AdminServicesPage() {
       const url = editingService ? `/api/services/${editingService.id}` : '/api/services';
       const method = editingService ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetch(apiUrl(url), {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -251,6 +251,18 @@ export default function AdminServicesPage() {
             <span>{feedback}</span>
           </div>
         )}
+
+        {/* Database categories overview: include categories even when they currently have no services */}
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div><h2 className="text-sm font-bold text-white">Service Categories</h2><p className="mt-1 text-xs text-slate-400">All categories stored in the database, including categories with no assigned services.</p></div>
+            <span className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-300">{categories.length} categories · {services.length} services</span>
+          </div>
+          {categories.length > 0 ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{categories.map((category) => {
+            const count = services.filter((service) => Number(service.categoryId) === Number(category.id)).length;
+            return <div key={category.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words text-sm font-semibold text-white">{category.name}</h3><p className="mt-1 break-all text-[11px] text-slate-500">{category.slug || 'No slug set'}</p></div><span className="shrink-0 rounded-full bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-300">{count} {count === 1 ? 'service' : 'services'}</span></div></div>;
+          })}</div> : <p className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-200">No categories were returned by the API. Check the backend category records and admin API response.</p>}
+        </section>
 
         {/* Services Table */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
