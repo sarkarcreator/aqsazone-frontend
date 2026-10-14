@@ -10,6 +10,7 @@ import Link from 'next/link';
 import {
   getSiteSettings,
   getServices,
+  getCategories,
   getProjects,
   getCaseStudies,
   getTestimonials,
@@ -28,10 +29,11 @@ import {
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const [settings, servicesList, projectsList, caseStudiesList, testimonialsList] =
+  const [settings, servicesList, categoriesList, projectsList, caseStudiesList, testimonialsList] =
     await Promise.all([
       getSiteSettings(),
       getServices({ publishedOnly: true }),
+      getCategories(),
       getProjects({ publishedOnly: true }),
       getCaseStudies({ publishedOnly: true, featuredOnly: true }),
       getTestimonials({ publishedOnly: true }),
@@ -80,6 +82,7 @@ export default async function HomePage() {
         {/* Featured Services Section */}
         <ServicesGrid
           services={servicesList}
+          categories={categoriesList}
           title="Digital Services Built for Growth"
           subtitle="Explore our specialized digital capabilities spanning modern web engineering, AI automation workflows, high-impact design systems, and SEO."
           limit={6}
