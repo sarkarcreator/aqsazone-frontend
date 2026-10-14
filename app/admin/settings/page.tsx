@@ -38,7 +38,11 @@ export default function AdminSettingsPage() {
             )
           );
           setLoadError(false);
-          setFeedback('');
+          setFeedback(
+            Object.keys(data.settings).length === 0
+              ? 'No saved CMS settings were found in the database. Enter the values you want and save to initialize these settings.'
+              : ''
+          );
         }
       } catch (err) {
         console.error('Failed to load website settings:', err);
@@ -126,7 +130,7 @@ export default function AdminSettingsPage() {
             role="status"
             aria-live="polite"
             className={`p-3.5 rounded-xl border text-xs flex items-center gap-2 ${
-              feedback.startsWith('Could not')
+              feedback.startsWith('Could not') || feedback.startsWith('No saved')
                 ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
                 : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
             }`}
