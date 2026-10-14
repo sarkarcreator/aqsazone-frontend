@@ -3,6 +3,7 @@
 
 import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Link from 'next/link';
 import {
@@ -50,6 +51,7 @@ export default function AdminDashboardPage() {
 
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadDashboard() {
@@ -60,14 +62,25 @@ export default function AdminDashboardPage() {
           fetch(apiUrl('/api/leads'), { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
+        if (resAnalytics.status === 401 || resLeads.status === 401) {
+          localStorage.removeItem('admin_token');
+          document.cookie = 'admin_token=; path=/; max-age=0';
+          router.replace('/admin/login');
+          return;
+        }
+
         if (resAnalytics.ok) {
           const analyticsData = await resAnalytics.json();
           setData(analyticsData);
+        } else {
+          console.error('Dashboard analytics request failed:', resAnalytics.status);
         }
 
         if (resLeads.ok) {
           const leadsData = await resLeads.json();
           setLeads(leadsData.leads?.slice(0, 5) || []);
+        } else {
+          console.error('Dashboard leads request failed:', resLeads.status);
         }
       } catch (err) {
         console.error('Failed to load dashboard:', err);
@@ -77,7 +90,7 @@ export default function AdminDashboardPage() {
     }
 
     loadDashboard();
-  }, []);
+  }, [router]);
 
   const handleQuickStatusChange = async (leadId: number, newStatus: string) => {
     try {
