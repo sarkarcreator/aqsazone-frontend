@@ -15,20 +15,47 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'collab' | 'contact' | 'seo'>('hero');
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadSettings() {
+      setLoading(true);
       try {
-        const res = await fetch(apiUrl('/api/settings'));
-        if (res.ok) {
-          const d = await res.json();
-          setSettings(d.settings || {});
+        const res = await fetch(apiUrl('/api/settings'), { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data?.error || `Settings request failed (HTTP ${res.status})`);
+        }
+        if (!data || typeof data.settings !== 'object' || data.settings === null || Array.isArray(data.settings)) {
+          throw new Error('The settings API returned an invalid response.');
+        }
+
+        if (!cancelled) {
+          setSettings(
+            Object.fromEntries(
+              Object.entries(data.settings).map(([key, value]) => [key, String(value ?? '')])
+            )
+          );
+          setFeedback('');
         }
       } catch (err) {
-        console.error('Failed to load settings:', err);
+        console.error('Failed to load website settings:', err);
+        if (!cancelled) {
+          setFeedback(
+            err instanceof Error
+              ? `Could not load website settings: ${err.message}`
+              : 'Could not load website settings. Please check the API and database connection.'
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
     loadSettings();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleChange = (key: string, value: string) => {
@@ -51,15 +78,24 @@ export default function AdminSettingsPage() {
         body: JSON.stringify(settings),
       });
 
-      if (res.ok) {
-        setFeedback('Settings updated and published successfully!');
-        setTimeout(() => setFeedback(''), 3000);
-      } else {
-        throw new Error('Failed to update settings');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || `Failed to update settings (HTTP ${res.status})`);
       }
+
+      setSettings(
+        Object.fromEntries(
+          Object.entries(data.settings || settings).map(([key, value]) => [key, String(value ?? '')])
+        )
+      );
+      setFeedback('Settings updated and published successfully.');
     } catch (err) {
       console.error('Save settings error:', err);
-      alert('Error updating settings');
+      setFeedback(
+        err instanceof Error
+          ? `Could not save settings: ${err.message}`
+          : 'Could not save settings. Please try again.'
+      );
     } finally {
       setSaving(false);
     }
@@ -83,9 +119,24 @@ export default function AdminSettingsPage() {
     >
       <div className="space-y-6 max-w-4xl">
         {feedback && (
-          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
+          <div
+            role="status"
+            aria-live="polite"
+            className={`p-3.5 rounded-xl border text-xs flex items-center gap-2 ${
+              feedback.startsWith('Could not')
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+            }`}
+          >
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{feedback}</span>
+          </div>
+        )}
+
+        {loading && (
+          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading website settings from the database…
           </div>
         )}
 
