@@ -33,6 +33,7 @@ interface ServiceItem {
 
 interface ServicesGridProps {
   services: ServiceItem[];
+  categories?: Array<{ id?: number; name: string; slug?: string }>;
   title?: string;
   subtitle?: string;
   showCategoryFilters?: boolean;
@@ -70,6 +71,7 @@ const getServiceIcon = (iconName: string) => {
 
 export default function ServicesGrid({
   services,
+  categories: availableCategories = [],
   title = 'Comprehensive Digital Solutions',
   subtitle = 'From autonomous AI agent pipelines to custom web platforms and brand identities, explore our core service offerings.',
   showCategoryFilters = true,
@@ -79,13 +81,16 @@ export default function ServicesGrid({
 
   // Extract unique categories
   const categories = Array.from(
-    new Set(services.map((s) => s.categoryName).filter(Boolean))
-  ) as string[];
+    new Set([
+      ...availableCategories.map((category) => category.name),
+      ...services.map((service) => service.categoryName || ''),
+    ].map((name) => name.trim()).filter(Boolean))
+  );
 
   const filteredServices = services
     .filter((s) => {
       if (activeCategory === 'all') return true;
-      return s.categoryName === activeCategory;
+      return (s.categoryName || '').trim().toLowerCase() === activeCategory.trim().toLowerCase();
     })
     .slice(0, limit || services.length);
 
@@ -138,7 +143,14 @@ export default function ServicesGrid({
         )}
 
         {/* Services Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        {filteredServices.length === 0 ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 px-6 py-12 text-center">
+            <Sparkles className="mx-auto h-8 w-8 text-slate-500" />
+            <h3 className="mt-3 text-base font-semibold text-white">No services in this category yet</h3>
+            <p className="mt-1 text-sm text-slate-400">Please choose another category or view all services.</p>
+            <button type="button" onClick={() => setActiveCategory('all')} className="mt-4 rounded-xl bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-500">View all services</button>
+          </div>
+        ) : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {filteredServices.map((service) => (
             <div
               key={service.id}
@@ -197,7 +209,7 @@ export default function ServicesGrid({
               </div>
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* View All CTA if limited */}
         {limit && services.length > limit && (
