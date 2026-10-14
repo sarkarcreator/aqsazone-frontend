@@ -95,17 +95,16 @@ export default function AdminProjectsPage() {
         fetch(apiUrl('/api/services?admin=true'), { headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
-      if (resProj.ok) {
-        const d = await resProj.json();
-        setProjects(d.projects || []);
-      }
-      if (resSvc.ok) {
-        const d = await resSvc.json();
-        setServices(d.services || []);
-        setCategories(d.categories || []);
-      }
+      if (!resProj.ok) throw new Error(`Could not load projects (HTTP ${resProj.status}).`);
+      const projectData = await resProj.json();
+      setProjects(Array.isArray(projectData.projects) ? projectData.projects : []);
+      if (!resSvc.ok) throw new Error(`Could not load categories and services (HTTP ${resSvc.status}).`);
+      const serviceData = await resSvc.json();
+      setServices(Array.isArray(serviceData.services) ? serviceData.services : []);
+      setCategories(Array.isArray(serviceData.categories) ? serviceData.categories : []);
     } catch (err) {
       console.error('Failed to load projects:', err);
+      setFeedback(err instanceof Error ? err.message : 'Failed to load projects, categories, or services.');
     } finally {
       setLoading(false);
     }
@@ -212,7 +211,7 @@ export default function AdminProjectsPage() {
       const url = editingProject ? `/api/projects/${editingProject.id}` : '/api/projects';
       const method = editingProject ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetch(apiUrl(url), {
         method,
         headers: {
           'Content-Type': 'application/json',
