@@ -10,6 +10,7 @@ import Image from 'next/image';
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'collab' | 'contact' | 'seo'>('hero');
@@ -36,11 +37,13 @@ export default function AdminSettingsPage() {
               Object.entries(data.settings).map(([key, value]) => [key, String(value ?? '')])
             )
           );
+          setLoadError(false);
           setFeedback('');
         }
       } catch (err) {
         console.error('Failed to load website settings:', err);
         if (!cancelled) {
+          setLoadError(true);
           setFeedback(
             err instanceof Error
               ? `Could not load website settings: ${err.message}`
@@ -109,7 +112,7 @@ export default function AdminSettingsPage() {
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || loading || loadError}
           className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
@@ -505,7 +508,7 @@ export default function AdminSettingsPage() {
           <div className="pt-4 border-t border-slate-800 flex justify-end">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || loading || loadError}
               className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md transition-colors disabled:opacity-50"
             >
               {saving ? 'Publishing Updates...' : 'Save & Publish Settings'}
