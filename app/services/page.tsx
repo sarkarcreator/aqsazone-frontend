@@ -53,6 +53,7 @@ export default async function ServicesPage() {
           {/* Services List */}
           <ServicesGrid
             services={servicesList}
+            categories={categories}
             showCategoryFilters={true}
             title="All Services"
             subtitle="Click on any service card below to view detailed deliverables, technical process breakdowns, and FAQs."
