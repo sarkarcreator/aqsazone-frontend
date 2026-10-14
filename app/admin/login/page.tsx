@@ -133,7 +133,7 @@ export default function AdminLoginPage() {
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
               <span>Admin PIN / Passcode</span>
-              <span className="text-[10px] text-purple-400 font-mono">Default: aqsa2026</span>
+              <span className="text-[10px] text-slate-500">Authorized admin only</span>
             </label>
             <div className="relative">
               <input
