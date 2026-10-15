@@ -92,7 +92,7 @@ export default function AdminSettingsPage() {
         Object.entries(settingsData.settings).map(([key, value]) => [key, String(value ?? '')])
       ));
       setLoadError(false);
-      setFeedback(`CMS initialized: ${data.categoriesAdded} categories added (${data.categoriesTotal} total), ${data.settingsAdded} settings added. Existing saved values were preserved.`);
+      setFeedback(`CMS initialized: ${data.categoriesAdded} categories added (${data.categoriesTotal} total), ${data.servicesAdded ?? 0} services added (${data.servicesTotal ?? 0} total), and ${data.settingsAdded} settings added. Existing saved values were preserved.`);
     } catch (err) {
       setFeedback(err instanceof Error ? `Could not initialize CMS: ${err.message}` : 'Could not initialize CMS. Please try again.');
     } finally {

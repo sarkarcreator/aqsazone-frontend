@@ -35,20 +35,7 @@ export default async function ServicesPage() {
             </p>
           </div>
 
-          {/* Quick Categories Bar */}
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 mb-12 flex flex-wrap gap-2">
-            <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold self-center mr-2">
-              Explore Disciplines:
-            </span>
-            {categories.map((c) => (
-              <span
-                key={c.id}
-                className="px-3 py-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-slate-300"
-              >
-                {c.name}
-              </span>
-            ))}
-          </div>
+          {/* Categories are available as interactive filters inside the service catalogue below. */}
 
           {/* Services List */}
           <ServicesGrid
