@@ -152,9 +152,11 @@ export default function ServicesGrid({
           </div>
         ) : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {filteredServices.map((service) => (
-            <div
+            <Link
               key={service.id}
-              className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-slate-900/70 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/40 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-purple-950/20 hover:-translate-y-1"
+              href={`/services/${service.slug}`}
+              aria-label={`Explore ${service.name} service details`}
+              className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-slate-900/70 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/40 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-purple-950/20 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
               <div>
                 {/* Header: Icon + Category Badge */}
@@ -199,13 +201,10 @@ export default function ServicesGrid({
 
               {/* Bottom CTA Link */}
               <div className="pt-4 border-t border-slate-800/80">
-                <Link
-                  href={`/services/${service.slug}`}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-purple-400 hover:text-purple-300 group/link"
-                >
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-purple-400 group-hover:text-purple-300">
                   <span>Explore Service & Process</span>
-                  <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </Link>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
               </div>
             </div>
           ))}
@@ -218,7 +217,7 @@ export default function ServicesGrid({
               href="/services"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 hover:text-white font-medium text-sm transition-all"
             >
-              <span>View All 11 Digital Services</span>
+              <span>View All Services</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
