@@ -69,6 +69,37 @@ export default function AdminSettingsPage() {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
+  const [initializing, setInitializing] = useState(false);
+
+  const handleInitializeCms = async () => {
+    setInitializing(true);
+    setFeedback('');
+    try {
+      const token = localStorage.getItem('admin_token') || '';
+      const res = await fetch(apiUrl('/api/admin/initialize-cms'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || `CMS initialization failed (HTTP ${res.status})`);
+
+      const settingsRes = await fetch(apiUrl('/api/settings'), { cache: 'no-store' });
+      const settingsData = await settingsRes.json().catch(() => ({}));
+      if (!settingsRes.ok || !settingsData?.settings) {
+        throw new Error('CMS initialized, but website settings could not be reloaded.');
+      }
+      setSettings(Object.fromEntries(
+        Object.entries(settingsData.settings).map(([key, value]) => [key, String(value ?? '')])
+      ));
+      setLoadError(false);
+      setFeedback(`CMS initialized: ${data.categoriesAdded} categories added (${data.categoriesTotal} total), ${data.settingsAdded} settings added. Existing saved values were preserved.`);
+    } catch (err) {
+      setFeedback(err instanceof Error ? `Could not initialize CMS: ${err.message}` : 'Could not initialize CMS. Please try again.');
+    } finally {
+      setInitializing(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -113,15 +144,26 @@ export default function AdminSettingsPage() {
       title="Website Settings & CMS Configuration"
       subtitle="Modify brand taglines, hero headers, profile imagery, collaboration notices, contact channels, and SEO metadata without touching code."
       actions={
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || loading || loadError}
-          className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md disabled:opacity-50"
-        >
-          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-          <span>Save Changes</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleInitializeCms}
+            disabled={initializing || loading}
+            className="px-4 py-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          >
+            {initializing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            <span>{initializing ? 'Initializing…' : 'Initialize CMS Data'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleSave({ preventDefault: () => {} } as React.FormEvent)}
+            disabled={saving || loading || loadError}
+            className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            <span>Save Changes</span>
+          </button>
+        </div>
       }
     >
       <div className="space-y-6 max-w-4xl">
