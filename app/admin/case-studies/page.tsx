@@ -4,7 +4,7 @@
 import { apiUrl } from '@/lib/api-client';
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { TrendingUp, Plus, Trash2, Edit, Eye, EyeOff, CheckCircle2, X } from 'lucide-react';
+import { TrendingUp, Plus, Trash2, Edit, Eye, EyeOff, CheckCircle2, X, Database } from 'lucide-react';
 
 interface CaseStudy {
   id: number;
@@ -30,6 +30,7 @@ export default function AdminCaseStudiesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [initializing, setInitializing] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -60,6 +61,30 @@ export default function AdminCaseStudiesPage() {
       console.error('Failed to load case studies:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInitializeCms = async () => {
+    if (!confirm('Initialize missing CMS defaults and add the three unpublished SEO, Content, and Ads case-study drafts? Existing records and admin-authored content will be preserved.')) return;
+
+    setInitializing(true);
+    setFeedback('');
+    try {
+      const token = localStorage.getItem('admin_token') || '';
+      const res = await fetch(apiUrl('/api/admin/initialize-cms'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'CMS initialization failed');
+
+      setFeedback(`CMS initialized. Case studies added: ${data.caseStudiesAdded ?? 0}; total: ${data.caseStudiesTotal ?? 0}. These showcase drafts remain unpublished.`);
+      await fetchCaseStudies();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'CMS initialization failed';
+      setFeedback(message);
+    } finally {
+      setInitializing(false);
     }
   };
 
@@ -161,14 +186,25 @@ export default function AdminCaseStudiesPage() {
       title="Case Studies CMS"
       subtitle="Document client problems, architectural strategies, execution, and verified results."
       actions={
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Case Study</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleInitializeCms}
+            disabled={initializing}
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          >
+            <Database className="w-4 h-4" />
+            <span>{initializing ? 'Initializing...' : 'Initialize CMS Defaults'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Case Study</span>
+          </button>
+        </div>
       }
     >
       <div className="space-y-6">
