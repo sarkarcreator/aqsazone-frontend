@@ -158,7 +158,9 @@ export default function AdminCaseStudiesPage() {
       const url = editingId ? `/api/case-studies/${editingId}` : '/api/case-studies';
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      // The admin frontend and API are hosted on different domains.
+      // Always resolve writes through the configured backend API base URL.
+      const res = await fetch(apiUrl(url), {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -167,15 +169,19 @@ export default function AdminCaseStudiesPage() {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error('Failed to save case study');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `Failed to save case study (HTTP ${res.status})`);
+      }
 
       setIsModalOpen(false);
-      fetchCaseStudies();
+      await fetchCaseStudies();
       setFeedback('Case study saved successfully!');
       setTimeout(() => setFeedback(''), 3000);
     } catch (err) {
       console.error('Save case study error:', err);
-      alert('Error saving case study');
+      const message = err instanceof Error ? err.message : 'Unable to save case study';
+      setFeedback(message);
     } finally {
       setSubmitting(false);
     }
