@@ -45,6 +45,8 @@ export default function AdminServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [initializing, setInitializing] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -79,6 +81,36 @@ export default function AdminServicesPage() {
       setLoading(false);
     }
   };
+
+  const handleInitializeCatalogue = async () => {
+    if (initializing) return;
+    setInitializing(true);
+    setFeedback('');
+    try {
+      const token = localStorage.getItem('admin_token') || '';
+      const res = await fetch(apiUrl('/api/admin/initialize-cms'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `Catalogue initialization failed (HTTP ${res.status}).`);
+      }
+      await fetchServices();
+      setSelectedCategoryId(null);
+      setFeedback(
+        `Catalogue ready: ${data.servicesAdded || 0} services added, ${data.servicesBackfilled || 0} existing services repaired, and ${data.servicesTotal || 0} total services available.`
+      );
+    } catch (err) {
+      setFeedback(err instanceof Error ? err.message : 'Could not initialize the service catalogue.');
+    } finally {
+      setInitializing(false);
+    }
+  };
+
+  const visibleServices = selectedCategoryId === null
+    ? services
+    : services.filter((service) => Number(service.categoryId) === selectedCategoryId);
 
   useEffect(() => {
     fetchServices();
@@ -258,9 +290,21 @@ export default function AdminServicesPage() {
             <div><h2 className="text-sm font-bold text-white">Service Categories</h2><p className="mt-1 text-xs text-slate-400">All categories stored in the database, including categories with no assigned services.</p></div>
             <span className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-300">{categories.length} categories · {services.length} services</span>
           </div>
+          {categories.length > 0 && services.length === 0 && (
+            <div className="mb-4 flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-amber-200">Service records are missing</p>
+                <p className="mt-1 text-xs text-slate-400">Your categories are saved, but no service records are linked to them yet. Restore the catalogue defaults to create the service descriptions, features, process steps, and FAQs.</p>
+              </div>
+              <button type="button" onClick={handleInitializeCatalogue} disabled={initializing} className="shrink-0 rounded-xl bg-purple-600 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60">
+                {initializing ? 'Restoring catalogue…' : 'Restore Service Catalogue'}
+              </button>
+            </div>
+          )}
           {categories.length > 0 ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{categories.map((category) => {
             const count = services.filter((service) => Number(service.categoryId) === Number(category.id)).length;
-            return <div key={category.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words text-sm font-semibold text-white">{category.name}</h3><p className="mt-1 break-all text-[11px] text-slate-500">{category.slug || 'No slug set'}</p></div><span className="shrink-0 rounded-full bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-300">{count} {count === 1 ? 'service' : 'services'}</span></div></div>;
+            const isSelected = selectedCategoryId === Number(category.id);
+            return <button type="button" key={category.id} onClick={() => setSelectedCategoryId(isSelected ? null : Number(category.id))} aria-pressed={isSelected} className={`rounded-xl border p-4 text-left transition-colors ${isSelected ? 'border-purple-500 bg-purple-500/10' : 'border-slate-800 bg-slate-950/70 hover:border-slate-600'}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words text-sm font-semibold text-white">{category.name}</h3><p className="mt-1 break-all text-[11px] text-slate-500">{category.slug || 'No slug set'}</p></div><span className="shrink-0 rounded-full bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-300">{count} {count === 1 ? 'service' : 'services'}</span></div><p className="mt-3 text-[10px] text-slate-500">{isSelected ? 'Showing this category · click to clear' : 'Click to filter services'}</p></button>;
           })}</div> : <p className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-200">No categories were returned by the API. Check the backend category records and admin API response.</p>}
         </section>
 
@@ -279,7 +323,7 @@ export default function AdminServicesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {services.map((svc) => (
+                {visibleServices.map((svc) => (
                   <tr key={svc.id} className="hover:bg-slate-800/30">
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-white text-sm">{svc.name}</div>
@@ -357,6 +401,13 @@ export default function AdminServicesPage() {
                     </td>
                   </tr>
                 ))}
+                {visibleServices.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-sm text-slate-400">
+                      {services.length === 0 ? 'No service records found. Restore the catalogue above to load the service details.' : 'No services are assigned to this category yet.'}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
