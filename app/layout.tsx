@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  verification: {
+    google: 'TEhGBuDq4dJ_ZSd0ivrnYgkPAGey3GCntjMpy4oLsZg',
+  },
   title: 'Aqsa Zone | Digital Services & Creative Portfolio',
   description:
     'Turning Ideas Into Digital Experiences. Professional portfolio and digital services in Web Development, AI Automation, Branding, and Marketing by Aqsa.',
