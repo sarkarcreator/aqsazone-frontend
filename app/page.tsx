@@ -35,7 +35,7 @@ export default async function HomePage() {
       getServices({ publishedOnly: true }),
       getCategories(),
       getProjects({ publishedOnly: true }),
-      getCaseStudies({ publishedOnly: true, featuredOnly: true }),
+      getCaseStudies({ publishedOnly: true }),
       getTestimonials({ publishedOnly: true }),
     ]);
 
